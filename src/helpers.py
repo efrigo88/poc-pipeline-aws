@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 import pyspark.sql.functions as F
+from sqlalchemy import create_engine
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_postgres import PGVector
@@ -217,10 +218,21 @@ def get_db_connection_string() -> str:
     )
 
 
+def ensure_pgvector_extension_exists():
+    """Ensure the pgvector extension is created in the database."""
+    engine = create_engine(get_db_connection_string())
+    with engine.begin() as conn:  # automatically commits
+        conn.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+    print("✅ Ensured pgvector extension exists")
+
+
 def init_vector_store(embeddings: OllamaEmbeddings) -> PGVector:
     """Initialize the vector store with LangChain's PGVector."""
     connection_string = get_db_connection_string()
     collection_name = "documents"
+
+    # Ensure pgvector extension exists before initializing PGVector
+    ensure_pgvector_extension_exists()
 
     return PGVector(
         embeddings=embeddings,

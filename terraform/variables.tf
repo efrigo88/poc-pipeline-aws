@@ -17,8 +17,18 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "aws_account_id" {
-  description = "AWS account ID"
+variable "db_username" {
+  description = "Username for the RDS instance"
   type        = string
-  default     = "140023373701"
+}
+
+variable "db_password" {
+  description = "Password for the RDS instance"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_name" {
+  description = "Name of the database to create"
+  type        = string
 }

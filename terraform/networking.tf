@@ -57,3 +57,38 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
+
+# Security Group for RDS
+resource "aws_security_group" "pg" {
+  name        = "pgvector-sg"
+  description = "Security group for pgvector RDS instance"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Note: In production, restrict this to your IP or VPC CIDR
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "pgvector-sg"
+  }
+}
+
+# DB Subnet Group
+resource "aws_db_subnet_group" "pg" {
+  name       = "pgvector-subnet-group"
+  subnet_ids = aws_subnet.public[*].id
+
+  tags = {
+    Name = "pgvector-subnet-group"
+  }
+}
