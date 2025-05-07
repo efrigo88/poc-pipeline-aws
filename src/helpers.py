@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 import pyspark.sql.functions as F
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text, Engine
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_postgres import PGVector
@@ -141,8 +141,8 @@ def get_chunks(
         separators=["\n\n", "\n", ".", "!", "?", " ", ""],
     )
     chunks = []
-    for text in text_content:
-        chunks.extend(splitter.split_text(text))
+    for content in text_content:
+        chunks.extend(splitter.split_text(content))
     if not chunks:
         raise ValueError("No text chunks found in the document.")
     return chunks
@@ -218,12 +218,11 @@ def get_db_connection_string() -> str:
     )
 
 
-def ensure_pgvector_extension_exists():
+def ensure_pgvector_extension_exists() -> None:
     """Ensure the pgvector extension is created in the database."""
-    engine = create_engine(get_db_connection_string())
-    with engine.begin() as conn:  # automatically commits
-        conn.execute("CREATE EXTENSION IF NOT EXISTS vector;")
-    print("✅ Ensured pgvector extension exists")
+    engine: Engine = create_engine(get_db_connection_string())
+    with engine.begin() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
 
 
 def init_vector_store(embeddings: OllamaEmbeddings) -> PGVector:
@@ -244,7 +243,7 @@ def init_vector_store(embeddings: OllamaEmbeddings) -> PGVector:
 
 def store_in_postgres(df: DataFrame, embeddings: OllamaEmbeddings) -> None:
     """Store data in PostgreSQL using LangChain's PGVector."""
-    vector_store = init_vector_store(embeddings)
+    vector_store: PGVector = init_vector_store(embeddings)
 
     # Convert DataFrame rows to LangChain Documents
     documents = []
@@ -275,7 +274,7 @@ def prepare_queries(
     embeddings: OllamaEmbeddings,
 ) -> List[Dict[str, Any]]:
     """Run queries and prepare results in json format using LangChain's PGVector."""
-    vector_store = init_vector_store(embeddings)
+    vector_store: PGVector = init_vector_store(embeddings)
     all_results = []
 
     for query in queries:
@@ -292,7 +291,7 @@ def prepare_queries(
                 {
                     "text": doc.page_content,
                     "metadata": doc.metadata,
-                    "similarity": 1.0,  # LangChain doesn't provide similarity scores directly
+                    "similarity": 1.0,  # LangChain doesn't provide similarity scores
                 }
                 for doc in results
             ],
