@@ -1,12 +1,13 @@
 # PDF Document Processing with pgvector
 
-This project processes PDF documents, generates embeddings using Ollama, and stores them in PostgreSQL with pgvector for semantic search capabilities.
+This project processes PDF documents, generates embeddings using Ollama, and stores them in PostgreSQL (AWS RDS) with pgvector for semantic search capabilities.
 
 ## Prerequisites
 
 - Docker and Docker Compose
 - Python 3.10 or higher
 - Git
+- AWS Account (for RDS PostgreSQL with pgvector)
 
 ## Project Structure
 
@@ -22,13 +23,45 @@ This project processes PDF documents, generates embeddings using Ollama, and sto
 │   ├── helpers.py      # Helper functions
 │   ├── main.py         # Main processing logic
 │   └── queries.py      # Predefined queries
+├── terraform/          # Infrastructure as Code
+│   └── rds.tf         # RDS and pgvector configuration
 ├── Dockerfile
 ├── docker-compose.yml
 ├── .env.example        # Example environment variables
 └── pyproject.toml
 ```
 
-## Environment Variables
+## Setup Steps
+
+### 1. Infrastructure Setup
+
+1. Initialize Terraform:
+
+   ```bash
+   cd terraform
+   terraform init
+   ```
+
+2. Apply the configuration:
+   ```bash
+   terraform apply
+   ```
+
+This will:
+
+- Create an RDS PostgreSQL instance
+- Configure the pgvector extension
+- Set up necessary security groups and networking
+
+After Terraform completes, it will output the RDS connection details including:
+
+- Database host
+- Port
+- Database name
+- Username
+- Password
+
+### 2. Environment Configuration
 
 1. Copy the example environment file:
 
@@ -36,7 +69,16 @@ This project processes PDF documents, generates embeddings using Ollama, and sto
    cp .env.example .env
    ```
 
-2. Review and adjust the variables in `.env` as needed for your environment.
+2. Update the `.env` file with the RDS connection details from the Terraform output:
+   ```env
+   POSTGRES_HOST=<rds_host_from_terraform>
+   POSTGRES_PORT=<rds_port_from_terraform>
+   POSTGRES_DB=<db_name_from_terraform>
+   POSTGRES_USER=<username_from_terraform>
+   POSTGRES_PASSWORD=<password_from_terraform>
+   ```
+
+⚠️ Important: The application will not work correctly until you've configured the `.env` file with the RDS connection details.
 
 ## Running the Project
 
@@ -100,6 +142,13 @@ The project includes predefined queries in `src/queries.py`. Each query:
 1. Is converted to an embedding using the same model as documents
 2. Is compared against document embeddings using cosine similarity
 3. Returns the top 3 most similar document chunks
+
+## Recent Improvements
+
+- Added proper pgvector extension setup in RDS
+- Improved SQLAlchemy transaction handling
+- Enhanced type hints for better code maintainability
+- Added infrastructure as code with Terraform
 
 ## Contributing
 
