@@ -22,49 +22,21 @@ resource "aws_db_instance" "pg" {
   }
 }
 
-# Output individual connection components
-output "db_host" {
-  description = "The hostname of the RDS instance"
-  value       = aws_db_instance.pg.address
-}
-
-output "db_port" {
-  description = "The port of the RDS instance"
-  value       = aws_db_instance.pg.port
-}
-
-output "db_name" {
-  description = "The name of the database"
-  value       = var.db_name
-}
-
-output "db_user" {
-  description = "The username for the database"
-  value       = var.db_username
-}
-
-output "db_password" {
-  description = "The password for the database"
-  value       = var.db_password
-  sensitive   = true
-}
-
 # Output the full connection string
 output "rds_connection_string" {
   description = "The full connection string for the database"
-  value       = "postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.pg.address}:${aws_db_instance.pg.port}/${var.db_name}"
-  sensitive   = true
+  value       = nonsensitive("postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.pg.address}:${aws_db_instance.pg.port}/${var.db_name}")
 }
 
 # Output formatted for .env file
 output "env_format" {
   description = "Connection details formatted for .env file"
-  value       = <<-EOT
+  value = nonsensitive(<<-EOT
     POSTGRES_HOST=${aws_db_instance.pg.address}
     POSTGRES_PORT=${aws_db_instance.pg.port}
     POSTGRES_DB=${var.db_name}
     POSTGRES_USER=${var.db_username}
     POSTGRES_PASSWORD=${var.db_password}
   EOT
-  sensitive   = true
+  )
 }
