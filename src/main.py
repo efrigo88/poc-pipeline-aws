@@ -22,7 +22,7 @@ from .helpers import (
 from .queries import QUERIES
 
 
-# Paths
+SPARK_TABLE_NAME = "documents"
 BUCKET_NAME = os.getenv("S3_BUCKET")
 SPARK_BUCKET_NAME = BUCKET_NAME.replace("s3://", "s3a://")
 INPUT_PATH = f"s3://{BUCKET_NAME}/data/input/Example_DCL.pdf"
@@ -64,14 +64,13 @@ def main() -> None:
 
     df = create_dataframe(ids, chunks, metadatas, embeddings)
 
-    iceberg_tbl_name = "documents"
-    create_iceberg_table(df, iceberg_tbl_name)
+    create_iceberg_table(df, SPARK_TABLE_NAME)
 
     # Load DataFrame from Iceberg table
-    df_loaded = spark.table(iceberg_tbl_name)
+    df_loaded = spark.table(SPARK_TABLE_NAME)
 
     df_deduplicated = deduplicate_data(df_loaded)
-    print(f"✅ Deduplicated DataFrame in {iceberg_tbl_name}")
+    print(f"✅ Deduplicated DataFrame in {SPARK_TABLE_NAME}")
 
     # Store in PostgreSQL using LangChain's PGVector
     store_in_postgres(df_deduplicated, model)

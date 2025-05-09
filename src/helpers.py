@@ -20,6 +20,7 @@ from langchain_ollama import OllamaEmbeddings
 # Initialize S3 client
 s3_client = boto3.client("s3")
 
+SPARK_DB = "poc_pipeline"
 SCHEMA = T.StructType(
     [
         T.StructField("id", T.StringType(), True),
@@ -62,7 +63,7 @@ spark = (
     .config("spark.sql.catalog.spark_catalog.type", "hadoop")
     .config(
         "spark.sql.catalog.spark_catalog.warehouse",
-        f"s3a://{os.getenv('S3_BUCKET')}/warehouse/default",
+        f"s3a://{os.getenv('S3_BUCKET')}/warehouse",
     )
     .config(
         "spark.jars.packages",
@@ -242,21 +243,31 @@ def get_embeddings(
     return model.embed_documents(chunks)
 
 
+def create_iceberg_database() -> None:
+    """Create Iceberg database if it doesn't exist."""
+    spark.sql(f"CREATE DATABASE IF NOT EXISTS {SPARK_DB}")
+
+
 def create_iceberg_table(df: DataFrame, table_name: str) -> None:
     """Create Iceberg table if it doesn't exist."""
     # Register DataFrame as a temporary view
     df.createOrReplaceTempView("temp_df")
 
+    # Create database if it doesn't exist
+    create_iceberg_database()
+
     # Create table with S3 location
     spark.sql(
-        f"CREATE TABLE IF NOT EXISTS {table_name} "
+        f"CREATE TABLE IF NOT EXISTS {SPARK_DB}.{table_name} "
         f"USING iceberg "
-        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/default/{table_name}' "
+        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/{SPARK_DB}/{table_name}' "
         "AS SELECT * FROM temp_df LIMIT 0"
     )
 
     # Save DataFrame to Iceberg table
-    df.write.format("iceberg").mode("overwrite").saveAsTable(table_name)
+    df.write.format("iceberg").mode("overwrite").saveAsTable(
+        f"{SPARK_DB}.{table_name}"
+    )
     print(f"✅ Saved Iceberg table {table_name} to S3")
 
 
