@@ -27,6 +27,7 @@ ECR_REPOSITORY="poc-pipeline"
 IMAGE_TAG="latest"
 
 # Ask for confirmation
+echo "Note: Select 'y' if this is your first time running or if you've modified the Docker image"
 read -p "Do you want to build and push a new Docker image? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
