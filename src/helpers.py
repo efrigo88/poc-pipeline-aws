@@ -45,9 +45,12 @@ SCHEMA = T.StructType(
 # Create Spark session
 spark = (
     SparkSession.builder.appName("TestSpark")
-    .master(os.getenv("THREADS"))
-    .config("spark.driver.memory", os.getenv("DRIVER_MEMORY"))
-    .config("spark.sql.shuffle.partitions", os.getenv("SHUFFLE_PARTITIONS"))
+    .master(os.getenv("SPARK_THREADS"))
+    .config("spark.driver.memory", os.getenv("SPARK_DRIVER_MEMORY"))
+    .config(
+        "spark.sql.shuffle.partitions",
+        os.getenv("SPARK_SHUFFLE_PARTITIONS"),
+    )
     .config(
         "spark.sql.extensions",
         "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions",

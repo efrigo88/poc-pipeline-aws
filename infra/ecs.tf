@@ -73,7 +73,7 @@ resource "aws_ecs_task_definition" "poc_task" {
         },
         {
           name  = "OLLAMA_HOST"
-          value = "http://localhost:11434"
+          value = var.ollama_host
         },
         {
           name  = "POSTGRES_HOST"
@@ -93,19 +93,19 @@ resource "aws_ecs_task_definition" "poc_task" {
         },
         {
           name  = "POSTGRES_PASSWORD"
-          value = var.db_password
+          value = aws_secretsmanager_secret_version.db_password.secret_string
         },
         {
-          name  = "THREADS"
-          value = "local[2]"
+          name  = "SPARK_THREADS"
+          value = var.spark_threads
         },
         {
-          name  = "DRIVER_MEMORY"
-          value = "4g"
+          name  = "SPARK_DRIVER_MEMORY"
+          value = var.spark_driver_memory
         },
         {
-          name  = "SHUFFLE_PARTITIONS"
-          value = "2"
+          name  = "SPARK_SHUFFLE_PARTITIONS"
+          value = var.spark_shuffle_partitions
         }
       ]
       logConfiguration = {
@@ -118,7 +118,7 @@ resource "aws_ecs_task_definition" "poc_task" {
       }
       entryPoint = ["/bin/sh", "-c"]
       command = [
-        "curl -X POST http://localhost:11434/api/pull -d '{\"name\":\"nomic-embed-text\"}' && python -m src.main"
+        "curl -X POST ${var.ollama_host}/api/pull -d '{\"name\":\"nomic-embed-text\"}' && python -m src.main"
       ]
     }
   ])

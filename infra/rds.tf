@@ -5,9 +5,9 @@ resource "aws_db_instance" "pg" {
   engine_version         = "17.4"
   instance_class         = "db.t3.micro"
   allocated_storage      = 20
-  username               = var.db_username
-  password               = var.db_password
   db_name                = var.db_name
+  username               = var.db_username
+  password               = aws_secretsmanager_secret_version.db_password.secret_string
   publicly_accessible    = true
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.pg.id]

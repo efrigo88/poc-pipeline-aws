@@ -23,8 +23,7 @@ from .queries import QUERIES
 
 
 # Paths
-ENV = "dev"
-BUCKET_NAME = f"s3://poc-pipeline-{ENV}-fhslxnfjksns"
+BUCKET_NAME = os.getenv("S3_BUCKET")
 SPARK_BUCKET_NAME = BUCKET_NAME.replace("s3://", "s3a://")
 INPUT_PATH = f"{BUCKET_NAME}/data/input/Example_DCL.pdf"
 OUTPUT_PATH = f"{SPARK_BUCKET_NAME}/data/output/"
