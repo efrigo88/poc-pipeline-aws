@@ -81,6 +81,10 @@ spark = (
 )
 
 
+class S3Error(Exception):
+    """Custom exception for S3-related errors."""
+
+
 def create_dataframe(
     ids: List[str],
     chunks: List[str],
@@ -144,7 +148,7 @@ def read_from_s3(s3_path: str) -> BinaryIO:
         response = s3_client.get_object(Bucket=bucket_name, Key=key)
         return response["Body"]
     except ClientError as e:
-        raise Exception(f"Error reading from S3: {str(e)}") from e
+        raise S3Error(f"Error reading from S3: {str(e)}") from e
 
 
 def write_to_s3(file_path: str, s3_path: str) -> None:
@@ -153,7 +157,7 @@ def write_to_s3(file_path: str, s3_path: str) -> None:
     try:
         s3_client.upload_file(file_path, bucket_name, key)
     except ClientError as e:
-        raise Exception(f"Error writing to S3: {str(e)}") from e
+        raise S3Error(f"Error writing to S3: {str(e)}") from e
 
 
 def parse_pdf(source_path: str) -> InputDocument:
