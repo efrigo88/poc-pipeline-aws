@@ -34,7 +34,6 @@ def main() -> None:
     # Store in PostgreSQL using LangChain's PGVector
     store_in_postgres(df_deduplicated, model)
 
-    # Run queries and save answers
     answers = prepare_queries(QUERIES, model)
     print("✅ Answers prepared")
 

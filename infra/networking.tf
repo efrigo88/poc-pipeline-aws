@@ -110,6 +110,15 @@ resource "aws_security_group" "pg" {
   description = "Security group for RDS PostgreSQL"
   vpc_id      = aws_vpc.main.id
 
+  # Allow all traffic from anywhere (dev purposes)
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow all traffic from the ECS tasks security group
   ingress {
     from_port       = 5432
     to_port         = 5432
