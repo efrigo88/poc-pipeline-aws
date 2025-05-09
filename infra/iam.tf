@@ -69,6 +69,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_role_rds_policy" {
   policy_arn = aws_iam_policy.rds_access_policy.arn
 }
 
+# Add S3 access policy
 resource "aws_iam_policy" "s3_access_policy" {
   name        = "s3-access-policy"
   description = "Policy for S3 access"
@@ -88,16 +89,15 @@ resource "aws_iam_policy" "s3_access_policy" {
           aws_s3_bucket.poc_pipeline_data.arn,
           "${aws_s3_bucket.poc_pipeline_data.arn}/*"
         ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:ListAllMyBuckets"
-        ]
-        Resource = "*"
       }
     ]
   })
+}
+
+# Attach S3 policy to ECS task role
+resource "aws_iam_role_policy_attachment" "ecs_task_role_s3_policy" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.s3_access_policy.arn
 }
 
 # Add CloudWatch Logs and ECS permissions
