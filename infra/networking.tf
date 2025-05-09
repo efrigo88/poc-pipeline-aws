@@ -159,7 +159,7 @@ resource "aws_security_group" "ecs_tasks" {
 # DB Subnet Group
 resource "aws_db_subnet_group" "pg" {
   name       = "pg-subnet-group"
-  subnet_ids = aws_subnet.private[*].id
+  subnet_ids = aws_subnet.public[*].id
 
   tags = {
     Name = "pg-subnet-group"
