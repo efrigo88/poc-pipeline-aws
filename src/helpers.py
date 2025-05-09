@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime
-from typing import List, Dict, Any, BinaryIO
+from typing import List, Dict, Any, BinaryIO, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
@@ -11,38 +11,20 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_postgres import PGVector
 from pyspark.sql import SparkSession, DataFrame
-import pyspark.sql.types as T
 from docling.datamodel.document import InputDocument
 from docling.document_converter import DocumentConverter
 from langchain_ollama import OllamaEmbeddings
 
+from .constants import (
+    SCHEMA,
+    SPARK_DB,
+    SPARK_TBL_NAME,
+    INPUT_PATH,
+    CHUNK_SIZE,
+)
 
 # Initialize S3 client
 s3_client = boto3.client("s3")
-
-SPARK_DB = "poc_pipeline"
-SPARK_TBL_NAME = "documents"
-SCHEMA = T.StructType(
-    [
-        T.StructField("id", T.StringType(), True),
-        T.StructField("chunk", T.StringType(), True),
-        T.StructField(
-            "metadata",
-            T.StructType(
-                [
-                    T.StructField("source", T.StringType(), True),
-                    T.StructField("chunk_index", T.IntegerType(), True),
-                    T.StructField("title", T.StringType(), True),
-                    T.StructField("chunk_size", T.IntegerType(), True),
-                ]
-            ),
-            True,
-        ),
-        T.StructField("processed_at", T.TimestampType(), True),
-        T.StructField("processed_dt", T.StringType(), True),
-        T.StructField("embeddings", T.ArrayType(T.FloatType()), True),
-    ]
-)
 
 # Create Spark session
 spark = (
@@ -270,7 +252,6 @@ def create_iceberg_table(df: DataFrame) -> None:
     df.write.format("iceberg").mode("overwrite").saveAsTable(
         f"{SPARK_DB}.{SPARK_TBL_NAME}"
     )
-    print("✅ Saved Iceberg table to S3")
 
 
 def save_json_data(data: List[Dict[str, Any]], s3_path: str) -> None:
@@ -351,7 +332,7 @@ def store_in_postgres(df: DataFrame, embeddings: OllamaEmbeddings) -> None:
 
     # Add documents to vector store with upsert
     vector_store.add_documents(documents, ids=ids)
-    print(f"📊 Total documents in PostgreSQL: {len(documents)}")
+    print(f"📊 Total documents added to PostgreSQL: {len(documents)}")
 
 
 def prepare_queries(
@@ -384,3 +365,23 @@ def prepare_queries(
         all_results.append(query_result)
 
     return all_results
+
+
+def process_document() -> Tuple[
+    List[str],
+    List[str],
+    List[Dict[str, Any]],
+    List[List[float]],
+    OllamaEmbeddings,
+]:
+    """Process PDF and generate embeddings."""
+    doc = parse_pdf(INPUT_PATH)
+    text_content = get_text_content(doc)
+    chunks = get_chunks(text_content, CHUNK_SIZE)
+    ids = get_ids(chunks, INPUT_PATH)
+    metadatas = get_metadata(chunks, doc, INPUT_PATH)
+    model = OllamaEmbeddings(
+        model="nomic-embed-text", base_url=os.getenv("OLLAMA_HOST")
+    )
+    embeddings = get_embeddings(chunks, model)
+    return ids, chunks, metadatas, embeddings, model
