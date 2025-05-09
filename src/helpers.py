@@ -21,6 +21,7 @@ from langchain_ollama import OllamaEmbeddings
 s3_client = boto3.client("s3")
 
 SPARK_DB = "poc_pipeline"
+SPARK_TBL_NAME = "documents"
 SCHEMA = T.StructType(
     [
         T.StructField("id", T.StringType(), True),
@@ -248,7 +249,7 @@ def create_iceberg_database() -> None:
     spark.sql(f"CREATE DATABASE IF NOT EXISTS {SPARK_DB}")
 
 
-def create_iceberg_table(df: DataFrame, table_name: str) -> None:
+def create_iceberg_table(df: DataFrame) -> None:
     """Create Iceberg table if it doesn't exist."""
     # Register DataFrame as a temporary view
     df.createOrReplaceTempView("temp_df")
@@ -258,17 +259,17 @@ def create_iceberg_table(df: DataFrame, table_name: str) -> None:
 
     # Create table with S3 location
     spark.sql(
-        f"CREATE TABLE IF NOT EXISTS {SPARK_DB}.{table_name} "
+        f"CREATE TABLE IF NOT EXISTS {SPARK_DB}.{SPARK_TBL_NAME} "
         f"USING iceberg "
-        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/{SPARK_DB}/{table_name}' "
+        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/{SPARK_DB}/{SPARK_TBL_NAME}' "
         "AS SELECT * FROM temp_df LIMIT 0"
     )
 
     # Save DataFrame to Iceberg table
     df.write.format("iceberg").mode("overwrite").saveAsTable(
-        f"{SPARK_DB}.{table_name}"
+        f"{SPARK_DB}.{SPARK_TBL_NAME}"
     )
-    print(f"✅ Saved Iceberg table {table_name} to S3")
+    print("✅ Saved Iceberg table to S3")
 
 
 def save_json_data(
