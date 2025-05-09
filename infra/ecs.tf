@@ -97,15 +97,15 @@ resource "aws_ecs_task_definition" "poc_task" {
         },
         {
           name  = "SPARK_THREADS"
-          value = var.spark_threads
+          value = tostring(var.spark_threads)
         },
         {
           name  = "SPARK_DRIVER_MEMORY"
-          value = var.spark_driver_memory
+          value = tostring(var.spark_driver_memory)
         },
         {
           name  = "SPARK_SHUFFLE_PARTITIONS"
-          value = var.spark_shuffle_partitions
+          value = tostring(var.spark_shuffle_partitions)
         }
       ]
       logConfiguration = {

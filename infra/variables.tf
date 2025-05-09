@@ -52,3 +52,10 @@ variable "spark_shuffle_partitions" {
   type        = number
   default     = 2
 }
+
+# TODO: Remove this variable
+variable "db_password" {
+  description = "Password for the RDS instance"
+  type        = string
+  default     = "P0stgr3s!"
+}
