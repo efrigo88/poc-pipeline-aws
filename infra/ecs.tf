@@ -22,6 +22,10 @@ resource "aws_ecs_task_definition" "poc_task" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
 
+  ephemeral_storage {
+    size_in_gib = 100
+  }
+
   container_definitions = jsonencode([
     {
       name      = "ollama"
