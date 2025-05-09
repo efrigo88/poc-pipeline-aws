@@ -31,17 +31,11 @@ aws ecs run-task \
   --task-definition ${TASK_DEFINITION_ARN} \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[${SUBNET_ID}],securityGroups=[${SECURITY_GROUP_ID}],assignPublicIp=ENABLED}" \
-  --overrides "{\"containerOverrides\":[{\"name\":\"etl-container\",\"environment\":[
+  --overrides "{\"containerOverrides\":[{\"name\":\"poc-container\",\"environment\":[
     {\"name\":\"THREADS\",\"value\":\"${THREADS}\"},
     {\"name\":\"DRIVER_MEMORY\",\"value\":\"${DRIVER_MEMORY}\"},
     {\"name\":\"SHUFFLE_PARTITIONS\",\"value\":\"${SHUFFLE_PARTITIONS}\"},
     {\"name\":\"OLLAMA_HOST\",\"value\":\"http://localhost:11434\"}
   ]}]}"
 
-echo "
-📋 To monitor the task status, use:
-
-aws ecs describe-tasks --cluster poc-pipeline-cluster --tasks <task-id>
-
-Note: Replace <task-id> with the task ID from the run-task command output.
-"
+echo "Go to AWS ECS console to monitor the task status."
