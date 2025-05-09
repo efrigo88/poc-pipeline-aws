@@ -1,10 +1,10 @@
-resource "aws_ecr_repository" "data_pipeline" {
-  name         = "data-pipeline"
+resource "aws_ecr_repository" "poc_pipeline" {
+  name         = "poc-pipeline"
   force_delete = true
 }
 
-resource "aws_ecr_lifecycle_policy" "data_pipeline" {
-  repository = aws_ecr_repository.data_pipeline.name
+resource "aws_ecr_lifecycle_policy" "poc_pipeline" {
+  repository = aws_ecr_repository.poc_pipeline.name
 
   policy = jsonencode({
     rules = [{

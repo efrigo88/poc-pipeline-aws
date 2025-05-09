@@ -8,7 +8,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name for resource naming"
   type        = string
-  default     = "pgvector-rds-lab"
+  default     = "poc-pipeline"
 }
 
 variable "environment" {

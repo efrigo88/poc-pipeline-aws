@@ -13,17 +13,22 @@ from .helpers import (
     deduplicate_data,
     create_dataframe,
     create_iceberg_table,
-    save_json_data,
     prepare_queries,
     store_in_postgres,
+    save_json_data,
     spark,
 )
 
 from .queries import QUERIES
 
-INPUT_PATH = "./data/input/Example_DCL.pdf"
-JSONL_PATH = "./data/jsonl_file"
-ANSWERS_PATH = "./data/answers/answers.jsonl"
+
+# Paths
+ENV = "dev"
+BUCKET_NAME = f"s3://poc-pipeline-{ENV}-fhslxnfjksns"
+SPARK_BUCKET_NAME = BUCKET_NAME.replace("s3://", "s3a://")
+INPUT_PATH = f"{BUCKET_NAME}/data/input/Example_DCL.pdf"
+OUTPUT_PATH = f"{SPARK_BUCKET_NAME}/data/output/"
+ANSWERS_PATH = f"{SPARK_BUCKET_NAME}/data/answers/answers.jsonl"
 CHUNK_SIZE = 200
 CHUNK_OVERLAP = 20
 
@@ -68,15 +73,6 @@ def main() -> None:
 
     df_deduplicated = deduplicate_data(df_loaded)
     print(f"✅ Deduplicated DataFrame in {iceberg_tbl_name}")
-
-    # Save DataFrame as JSONL file for development purposes
-    (
-        df_deduplicated.repartition(1)
-        .write.format("json")
-        .mode("overwrite")
-        .save(JSONL_PATH)
-    )
-    print(f"✅ Saved JSONL file in {JSONL_PATH}")
 
     # Store in PostgreSQL using LangChain's PGVector
     store_in_postgres(df_deduplicated, model)

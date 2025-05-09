@@ -1,8 +1,10 @@
 import os
 import json
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, BinaryIO
 
+import boto3
+from botocore.exceptions import ClientError
 import pyspark.sql.functions as F
 from sqlalchemy import create_engine, text, Engine
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -14,6 +16,9 @@ from docling.datamodel.document import InputDocument
 from docling.document_converter import DocumentConverter
 from langchain_ollama import OllamaEmbeddings
 
+
+# Initialize S3 client
+s3_client = boto3.client("s3")
 
 SCHEMA = T.StructType(
     [
@@ -52,7 +57,10 @@ spark = (
         "org.apache.iceberg.spark.SparkSessionCatalog",
     )
     .config("spark.sql.catalog.spark_catalog.type", "hadoop")
-    .config("spark.sql.catalog.spark_catalog.warehouse", "./data/warehouse")
+    .config(
+        "spark.sql.catalog.spark_catalog.warehouse",
+        f"s3a://{os.getenv('S3_BUCKET')}/warehouse",
+    )
     .config(
         "spark.jars.packages",
         "org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.5.0,"
@@ -115,10 +123,57 @@ def deduplicate_data(df: DataFrame) -> DataFrame:
     return df
 
 
+def get_s3_bucket_and_key(s3_path: str) -> tuple[str, str]:
+    """Extract bucket name and key from S3 path."""
+    if not (s3_path.startswith("s3://") or s3_path.startswith("s3a://")):
+        raise ValueError(
+            "Path must be an S3 path starting with 's3://' or 's3a://'"
+        )
+    path_without_prefix = (
+        s3_path[5:] if s3_path.startswith("s3://") else s3_path[6:]
+    )
+    bucket_name = path_without_prefix.split("/")[0]
+    key = "/".join(path_without_prefix.split("/")[1:])
+    return bucket_name, key
+
+
+def read_from_s3(s3_path: str) -> BinaryIO:
+    """Read file from S3."""
+    bucket_name, key = get_s3_bucket_and_key(s3_path)
+    try:
+        response = s3_client.get_object(Bucket=bucket_name, Key=key)
+        return response["Body"]
+    except ClientError as e:
+        raise Exception(f"Error reading from S3: {str(e)}") from e
+
+
+def write_to_s3(file_path: str, s3_path: str) -> None:
+    """Write file to S3."""
+    bucket_name, key = get_s3_bucket_and_key(s3_path)
+    try:
+        s3_client.upload_file(file_path, bucket_name, key)
+    except ClientError as e:
+        raise Exception(f"Error writing to S3: {str(e)}") from e
+
+
 def parse_pdf(source_path: str) -> InputDocument:
     """Parse the PDF document using DocumentConverter."""
     converter = DocumentConverter()
-    result = converter.convert(source_path)
+    if source_path.startswith("s3://"):
+        # Read from S3 and save to temporary file
+        s3_file = read_from_s3(source_path)
+        temp_file = f"/tmp/{source_path.split('/')[-1]}"
+        with open(temp_file, "wb") as f:
+            f.write(s3_file.read())
+        try:
+            result = converter.convert(temp_file)
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+    else:
+        # Read from local file
+        result = converter.convert(source_path)
     return result.document
 
 
@@ -185,14 +240,17 @@ def create_iceberg_table(df: DataFrame, table_name: str) -> None:
     # Register DataFrame as a temporary view
     df.createOrReplaceTempView("temp_df")
 
+    # Create table with S3 location
     spark.sql(
         f"CREATE TABLE IF NOT EXISTS {table_name} "
-        "USING iceberg AS SELECT * FROM temp_df LIMIT 0"
+        f"USING iceberg "
+        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/{table_name}' "
+        "AS SELECT * FROM temp_df LIMIT 0"
     )
 
     # Save DataFrame to Iceberg table
     df.write.format("iceberg").mode("overwrite").saveAsTable(table_name)
-    print(f"✅ Saved Iceberg table {table_name}")
+    print(f"✅ Saved Iceberg table {table_name} to S3")
 
 
 def save_json_data(
@@ -203,10 +261,24 @@ def save_json_data(
         raise FileExistsError(
             f"File {file_path} already exists and overwrite=False"
         )
-    with open(file_path, "w", encoding="utf-8") as f:
+
+    # Create a temporary file
+    temp_file = f"/tmp/{os.path.basename(file_path)}"
+
+    # Write to temporary file
+    with open(temp_file, "w", encoding="utf-8") as f:
         for item in data:
             json.dump(item, f, ensure_ascii=False)
             f.write("\n")
+
+    # If it's an S3 path, upload the file
+    if file_path.startswith(("s3://", "s3a://")):
+        write_to_s3(temp_file, file_path)
+        # Clean up temporary file
+        os.remove(temp_file)
+    else:
+        # Move the temporary file to the final location
+        os.rename(temp_file, file_path)
 
 
 def get_db_connection_string() -> str:

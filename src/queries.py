@@ -1,13 +1,5 @@
 """Queries to be used for the application."""
 
-# Query settings
-# QUERIES = [
-#     "What does this document say about typography?",
-#     "Will I get information if I read this document?",
-#     "How does this text help in evaluating typography?",
-#     "What are the specific requirements mentioned for this sample text?",
-# ]
-
 QUERIES = [
     "¿Cuándo y cómo comenzó la relación entre la declarante y su pareja?",
     "¿Qué tipo de abusos sufrió la persona declarante?",
