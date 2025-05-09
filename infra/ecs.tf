@@ -1,10 +1,8 @@
 # ECS Configuration
 locals {
-  # CPU units for the ECS task (1024 units = 1 vCPU)
-  task_cpu = 4096
-
-  # Memory for the ECS task in MiB
-  task_memory = 16384
+  task_cpu    = 4096  # CPU units for the ECS task (1024 units = 1 vCPU)
+  task_memory = 16384 # Memory for the ECS task in MiB
+  disk_size   = 100   # Disk size for the ECS task in GiB
 }
 
 # ECS Cluster
@@ -23,7 +21,7 @@ resource "aws_ecs_task_definition" "poc_task" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   ephemeral_storage {
-    size_in_gib = 100
+    size_in_gib = local.disk_size
   }
 
   container_definitions = jsonencode([
