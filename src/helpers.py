@@ -261,7 +261,8 @@ def create_iceberg_table(df: DataFrame) -> None:
     spark.sql(
         f"CREATE TABLE IF NOT EXISTS {SPARK_DB}.{SPARK_TBL_NAME} "
         f"USING iceberg "
-        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/{SPARK_DB}/{SPARK_TBL_NAME}' "
+        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/"
+        f"{SPARK_DB}/{SPARK_TBL_NAME}' "
         "AS SELECT * FROM temp_df LIMIT 0"
     )
 
@@ -272,17 +273,12 @@ def create_iceberg_table(df: DataFrame) -> None:
     print("✅ Saved Iceberg table to S3")
 
 
-def save_json_data(
-    data: List[Dict[str, Any]], file_path: str, overwrite: bool = True
-) -> None:
-    """Save data to a JSONL file (one JSON object per line)."""
-    if not overwrite and os.path.exists(file_path):
-        raise FileExistsError(
-            f"File {file_path} already exists and overwrite=False"
-        )
-
+def save_json_data(data: List[Dict[str, Any]], s3_path: str) -> None:
+    """Save data to a JSONL file in S3 (one JSON object per line)."""
     # Create a temporary file
-    temp_file = f"/tmp/{os.path.basename(file_path)}"
+    temp_dir = "/tmp"
+    os.makedirs(temp_dir, exist_ok=True)
+    temp_file = os.path.join(temp_dir, os.path.basename(s3_path))
 
     # Write to temporary file
     with open(temp_file, "w", encoding="utf-8") as f:
@@ -290,14 +286,12 @@ def save_json_data(
             json.dump(item, f, ensure_ascii=False)
             f.write("\n")
 
-    # If it's an S3 path, upload the file
-    if file_path.startswith(("s3://", "s3a://")):
-        write_to_s3(temp_file, file_path)
-        # Clean up temporary file
+    # Upload to S3
+    write_to_s3(temp_file, s3_path)
+
+    # Clean up temporary file
+    if os.path.exists(temp_file):
         os.remove(temp_file)
-    else:
-        # Move the temporary file to the final location
-        os.rename(temp_file, file_path)
 
 
 def get_db_connection_string() -> str:
@@ -364,7 +358,7 @@ def prepare_queries(
     queries: List[str],
     embeddings: OllamaEmbeddings,
 ) -> List[Dict[str, Any]]:
-    """Run queries and prepare results in json format using LangChain's PGVector."""
+    """Run queries and prepare results in json format"""
     vector_store: PGVector = init_vector_store(embeddings)
     all_results = []
 
@@ -382,7 +376,7 @@ def prepare_queries(
                 {
                     "text": doc.page_content,
                     "metadata": doc.metadata,
-                    "similarity": 1.0,  # LangChain doesn't provide similarity scores
+                    "similarity": 1.0,
                 }
                 for doc in results
             ],

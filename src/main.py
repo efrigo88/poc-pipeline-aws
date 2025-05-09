@@ -80,8 +80,9 @@ def main() -> None:
 
     # Run queries and save answers
     answers = prepare_queries(QUERIES, model)
+    print("✅ Answers prepared")
     save_json_data(answers, ANSWERS_PATH)
-    print(f"✅ Saved answers in {ANSWERS_PATH}")
+    print(f"✅ Answers Saved in {ANSWERS_PATH}")
     print("✅ Process completed!")
 
     spark.stop()
