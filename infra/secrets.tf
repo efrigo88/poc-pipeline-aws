@@ -2,7 +2,7 @@
 # aws secretsmanager delete-secret --secret-id db_password --force-delete-without-recovery --region eu-west-1 | cat
 
 locals {
-  db_password = "P0stgr3s!"
+  db_password = "P0stgr3s!" # Put here as this is for development purposes
 }
 
 resource "aws_secretsmanager_secret" "db_password" {
