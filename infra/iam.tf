@@ -1,3 +1,6 @@
+# Get current account ID
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecs-task-execution-role"
 
