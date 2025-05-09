@@ -49,13 +49,6 @@ variable "spark_driver_memory" {
 
 variable "spark_shuffle_partitions" {
   description = "Number of shuffle partitions for the Spark application"
-  type        = number
-  default     = 2
-}
-
-# TODO: Remove this variable
-variable "db_password" {
-  description = "Password for the RDS instance"
   type        = string
-  default     = "P0stgr3s!"
+  default     = "2"
 }

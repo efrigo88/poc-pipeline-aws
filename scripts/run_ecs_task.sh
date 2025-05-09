@@ -36,6 +36,7 @@ aws ecs run-task \
     {\"name\":\"DRIVER_MEMORY\",\"value\":\"${DRIVER_MEMORY}\"},
     {\"name\":\"SHUFFLE_PARTITIONS\",\"value\":\"${SHUFFLE_PARTITIONS}\"},
     {\"name\":\"OLLAMA_HOST\",\"value\":\"http://localhost:11434\"}
-  ]}]}"
+  ]}]}" \
+  --no-cli-pager > /dev/null
 
 echo "Go to AWS ECS console to monitor the task status."

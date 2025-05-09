@@ -25,7 +25,14 @@ resource "aws_db_instance" "pg" {
 # Output the full connection string
 output "rds_connection_string" {
   description = "The full connection string for the database"
-  value       = nonsensitive("postgresql://${var.db_username}:${var.db_password}@${aws_db_instance.pg.address}:${aws_db_instance.pg.port}/${var.db_name}")
+  value = nonsensitive(format(
+    "postgresql://%s:%s@%s:%s/%s",
+    var.db_username,
+    aws_secretsmanager_secret_version.db_password.secret_string,
+    aws_db_instance.pg.address,
+    aws_db_instance.pg.port,
+    var.db_name
+  ))
 }
 
 # Output formatted for .env file
@@ -36,7 +43,7 @@ output "env_format" {
     POSTGRES_PORT=${aws_db_instance.pg.port}
     POSTGRES_DB=${var.db_name}
     POSTGRES_USER=${var.db_username}
-    POSTGRES_PASSWORD=${var.db_password}
+    POSTGRES_PASSWORD=${aws_secretsmanager_secret_version.db_password.secret_string}
   EOT
   )
 }

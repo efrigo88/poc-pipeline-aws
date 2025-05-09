@@ -105,7 +105,7 @@ resource "aws_ecs_task_definition" "poc_task" {
         },
         {
           name  = "SPARK_SHUFFLE_PARTITIONS"
-          value = tostring(var.spark_shuffle_partitions)
+          value = var.spark_shuffle_partitions
         }
       ]
       logConfiguration = {

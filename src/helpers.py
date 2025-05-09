@@ -62,7 +62,7 @@ spark = (
     .config("spark.sql.catalog.spark_catalog.type", "hadoop")
     .config(
         "spark.sql.catalog.spark_catalog.warehouse",
-        f"s3a://{os.getenv('S3_BUCKET')}/warehouse",
+        f"s3a://{os.getenv('S3_BUCKET')}/warehouse/default",
     )
     .config(
         "spark.jars.packages",
