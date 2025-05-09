@@ -100,28 +100,10 @@ resource "aws_iam_policy" "s3_access_policy" {
   })
 }
 
-# IAM role for Lambda ####################
-resource "aws_iam_role" "lambda_role" {
-  name = "lambda-trigger-etl-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-}
-
-# IAM policy for Lambda to run ECS tasks
-resource "aws_iam_role_policy" "lambda_run_task_policy" {
-  name = "lambda-run-task-policy"
-  role = aws_iam_role.lambda_role.id
+# Add CloudWatch Logs and ECS permissions
+resource "aws_iam_policy" "ecs_logs_policy" {
+  name        = "ecs-logs-policy"
+  description = "Policy for ECS task to access CloudWatch logs and ECS resources"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -129,22 +111,35 @@ resource "aws_iam_role_policy" "lambda_run_task_policy" {
       {
         Effect = "Allow"
         Action = [
-          "ecs:RunTask",
-          "iam:PassRole"
+          "logs:GetLogEvents",
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/ecs/poc-task:*"
+        ]
       },
       {
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
+          "ecs:DescribeClusters",
+          "ecs:DescribeTasks",
+          "ecs:DescribeTaskDefinition"
         ]
-        Resource = "arn:aws:logs:*:*:*"
+        Resource = [
+          "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:cluster/poc-pipeline-cluster",
+          "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:task/poc-pipeline-cluster/*",
+          "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:task-definition/*:*"
+        ]
       }
     ]
   })
+}
+
+# Attach the policy to the ECS task role
+resource "aws_iam_role_policy_attachment" "ecs_logs_policy_attachment" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.ecs_logs_policy.arn
 }
 
 resource "aws_iam_policy" "ecr_access_policy" {
