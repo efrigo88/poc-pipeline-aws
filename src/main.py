@@ -25,7 +25,7 @@ from .queries import QUERIES
 # Paths
 BUCKET_NAME = os.getenv("S3_BUCKET")
 SPARK_BUCKET_NAME = BUCKET_NAME.replace("s3://", "s3a://")
-INPUT_PATH = f"{BUCKET_NAME}/data/input/Example_DCL.pdf"
+INPUT_PATH = f"s3://{BUCKET_NAME}/data/input/Example_DCL.pdf"
 OUTPUT_PATH = f"{SPARK_BUCKET_NAME}/data/output/"
 ANSWERS_PATH = f"{SPARK_BUCKET_NAME}/data/answers/answers.jsonl"
 CHUNK_SIZE = 200

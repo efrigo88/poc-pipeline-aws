@@ -251,7 +251,7 @@ def create_iceberg_table(df: DataFrame, table_name: str) -> None:
     spark.sql(
         f"CREATE TABLE IF NOT EXISTS {table_name} "
         f"USING iceberg "
-        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/{table_name}' "
+        f"LOCATION 's3a://{os.getenv('S3_BUCKET')}/warehouse/default/{table_name}' "
         "AS SELECT * FROM temp_df LIMIT 0"
     )
 
