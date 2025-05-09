@@ -156,3 +156,14 @@ resource "aws_db_subnet_group" "pg" {
     Name = "pg-subnet-group"
   }
 }
+
+# Outputs
+output "subnet_ids" {
+  value       = aws_subnet.public[*].id
+  description = "List of public subnet IDs"
+}
+
+output "security_group_id" {
+  value       = aws_security_group.ecs_tasks.id
+  description = "Security group ID for ECS tasks"
+}

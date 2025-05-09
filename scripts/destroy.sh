@@ -28,7 +28,7 @@ aws ecr batch-delete-image \
 
 # Delete all files in S3 bucket
 echo "🧹 Deleting all files in S3 bucket..."
-BUCKET_NAME=$(aws s3 ls | grep "docker-pipeline-ml-ec2-lab" | awk '{print $3}')
+BUCKET_NAME=$(aws s3 ls | grep "poc-pipeline" | awk '{print $3}')
 if [ -z "$BUCKET_NAME" ]; then
     echo "⚠️ No matching S3 bucket found, skipping bucket cleanup"
 else
@@ -64,10 +64,6 @@ find . -type f \( \
 
 # Change back to root directory
 cd ..
-
-# Delete key.pem
-echo "🧹 Deleting key.pem..."
-rm -rf key.pem
 
 echo "✅ Cleanup completed successfully!"
 echo "All AWS resources and local Terraform state files have been destroyed."

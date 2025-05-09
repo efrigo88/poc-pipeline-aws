@@ -24,9 +24,42 @@ resource "aws_ecs_task_definition" "poc_task" {
 
   container_definitions = jsonencode([
     {
+      name      = "ollama"
+      image     = "ollama/ollama:latest"
+      essential = true
+      portMappings = [
+        {
+          containerPort = 11434
+          hostPort      = 11434
+          protocol      = "tcp"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/poc-task"
+          "awslogs-region"        = var.aws_region
+          "awslogs-stream-prefix" = "ecs-ollama"
+        }
+      }
+      healthCheck = {
+        command     = ["CMD-SHELL", "curl -f http://localhost:11434/api/health || exit 1"]
+        interval    = 30
+        timeout     = 5
+        retries     = 3
+        startPeriod = 60
+      }
+    },
+    {
       name      = "poc-container"
       image     = "${aws_ecr_repository.poc_pipeline.repository_url}:latest"
       essential = true
+      dependsOn = [
+        {
+          containerName = "ollama"
+          condition     = "HEALTHY"
+        }
+      ]
       environment = [
         {
           name  = "AWS_REGION"
@@ -35,6 +68,10 @@ resource "aws_ecs_task_definition" "poc_task" {
         {
           name  = "S3_BUCKET"
           value = aws_s3_bucket.poc_pipeline_data.id
+        },
+        {
+          name  = "OLLAMA_HOST"
+          value = "http://localhost:11434"
         },
         {
           name  = "POSTGRES_HOST"
@@ -74,9 +111,19 @@ resource "aws_ecs_task_definition" "poc_task" {
         options = {
           "awslogs-group"         = "/ecs/poc-task"
           "awslogs-region"        = var.aws_region
-          "awslogs-stream-prefix" = "ecs"
+          "awslogs-stream-prefix" = "ecs-poc"
         }
       }
+      entryPoint = ["/bin/sh", "-c"]
+      command = [
+        "curl -X POST http://localhost:11434/api/pull -d '{\"name\":\"nomic-embed-text\"}' && python -m src.main"
+      ]
     }
   ])
+}
+
+# Output the task definition ARN for easy reference
+output "task_definition_arn" {
+  value       = aws_ecs_task_definition.poc_task.arn
+  description = "ARN of the ECS task definition"
 }
