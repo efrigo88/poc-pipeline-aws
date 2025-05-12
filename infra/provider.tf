@@ -10,7 +10,6 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  # profile = "admin" # AWS CLI profile name
 
   default_tags {
     tags = {

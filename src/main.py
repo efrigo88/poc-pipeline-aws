@@ -1,15 +1,16 @@
+from datetime import datetime
+import pandas as pd
+
 from .helpers import (
     process_document,
     deduplicate_data,
     create_dataframe,
-    create_iceberg_table,
     prepare_queries,
     store_in_postgres,
     save_json_data,
-    spark,
 )
 
-from .constants import QUERIES, ANSWERS_PATH, SPARK_DB, SPARK_TBL_NAME
+from .constants import QUERIES, ANSWERS_PATH, OUTPUT_PATH
 
 
 def main() -> None:
@@ -20,11 +21,13 @@ def main() -> None:
     df = create_dataframe(ids, chunks, metadatas, embeddings)
     print("✅ DataFrame created")
 
-    create_iceberg_table(df)
-    print("✅ Saved Iceberg table to S3")
+    # Save DataFrame to S3
+    ingestion_dt = datetime.now().strftime("%Y-%m-%d")
+    df.to_parquet(f"{OUTPUT_PATH}/{ingestion_dt}/data.parquet")
+    print("✅ Saved table to S3")
 
-    # Load DataFrame from Iceberg table
-    df_loaded = spark.table(f"{SPARK_DB}.{SPARK_TBL_NAME}")
+    # Load DataFrame from S3
+    df_loaded = pd.read_parquet(f"{OUTPUT_PATH}/{ingestion_dt}/data.parquet")
     print("✅ DataFrame loaded")
     print("Number of rows in DataFrame:", df_loaded.count())
 
@@ -40,9 +43,6 @@ def main() -> None:
     save_json_data(answers, ANSWERS_PATH)
     print(f"✅ Answers Saved in {ANSWERS_PATH}")
     print("✅ Process completed!")
-
-    spark.stop()
-    print("✅ Spark session stopped.")
 
 
 if __name__ == "__main__":

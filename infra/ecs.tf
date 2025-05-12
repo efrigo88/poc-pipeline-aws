@@ -94,18 +94,6 @@ resource "aws_ecs_task_definition" "poc_task" {
         {
           name  = "POSTGRES_PASSWORD"
           value = aws_secretsmanager_secret_version.db_password.secret_string
-        },
-        {
-          name  = "SPARK_THREADS"
-          value = tostring(var.spark_threads)
-        },
-        {
-          name  = "SPARK_DRIVER_MEMORY"
-          value = tostring(var.spark_driver_memory)
-        },
-        {
-          name  = "SPARK_SHUFFLE_PARTITIONS"
-          value = var.spark_shuffle_partitions
         }
       ]
       logConfiguration = {

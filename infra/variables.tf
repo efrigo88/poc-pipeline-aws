@@ -34,21 +34,3 @@ variable "ollama_host" {
   type        = string
   default     = "http://localhost:11434"
 }
-
-variable "spark_threads" {
-  description = "Number of threads for the Spark application"
-  type        = string
-  default     = "local[2]"
-}
-
-variable "spark_driver_memory" {
-  description = "Driver memory for the Spark application"
-  type        = string
-  default     = "4g"
-}
-
-variable "spark_shuffle_partitions" {
-  description = "Number of shuffle partitions for the Spark application"
-  type        = string
-  default     = "2"
-}

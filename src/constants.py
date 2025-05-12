@@ -1,37 +1,12 @@
 import os
-import pyspark.sql.types as T
-
-SPARK_DB = "poc_pipeline"
-SPARK_TBL_NAME = "documents"
 
 BUCKET_NAME = os.getenv("S3_BUCKET")
 INPUT_PATH = f"s3://{BUCKET_NAME}/data/input/Example_DCL.pdf"
+OUTPUT_PATH = f"s3://{BUCKET_NAME}/data/output/table"
 ANSWERS_PATH = f"s3://{BUCKET_NAME}/data/answers/answers.jsonl"
 
 CHUNK_SIZE = 200
 CHUNK_OVERLAP = 20
-
-SCHEMA = T.StructType(
-    [
-        T.StructField("id", T.StringType(), True),
-        T.StructField("chunk", T.StringType(), True),
-        T.StructField(
-            "metadata",
-            T.StructType(
-                [
-                    T.StructField("source", T.StringType(), True),
-                    T.StructField("chunk_index", T.IntegerType(), True),
-                    T.StructField("title", T.StringType(), True),
-                    T.StructField("chunk_size", T.IntegerType(), True),
-                ]
-            ),
-            True,
-        ),
-        T.StructField("processed_at", T.TimestampType(), True),
-        T.StructField("processed_dt", T.StringType(), True),
-        T.StructField("embeddings", T.ArrayType(T.FloatType()), True),
-    ]
-)
 
 # Queries to be used for the application
 QUERIES = [
