@@ -96,24 +96,19 @@ def write_to_s3(file_path: str, s3_path: str) -> None:
         raise S3Error(f"Error writing to S3: {str(e)}") from e
 
 
-def parse_pdf(source_path: str) -> InputDocument:
+def parse_document(source_path: str) -> InputDocument:
     """Parse the PDF document using DocumentConverter."""
     converter = DocumentConverter()
-    if source_path.startswith("s3://"):
-        # Read from S3 and save to temporary file
-        s3_file = read_from_s3(source_path)
-        temp_file = f"/tmp/{source_path.split('/')[-1]}"
-        with open(temp_file, "wb") as f:
-            f.write(s3_file.read())
-        try:
-            result = converter.convert(temp_file)
-        finally:
-            # Clean up temporary file
-            if os.path.exists(temp_file):
-                os.remove(temp_file)
-    else:
-        # Read from local file
-        result = converter.convert(source_path)
+    s3_file = read_from_s3(source_path)
+    temp_file = f"/tmp/{source_path.split('/')[-1]}"
+    with open(temp_file, "wb") as f:
+        f.write(s3_file.read())
+    try:
+        result = converter.convert(temp_file)
+    finally:
+        # Clean up temporary file
+        if os.path.exists(temp_file):
+            os.remove(temp_file)
     return result.document
 
 
@@ -296,7 +291,7 @@ def process_document() -> Tuple[
     OllamaEmbeddings,
 ]:
     """Process PDF and generate embeddings."""
-    doc = parse_pdf(INPUT_PATH)
+    doc = parse_document(INPUT_PATH)
     text_content = get_text_content(doc)
     chunks = get_chunks(text_content, CHUNK_SIZE)
     ids = get_ids(chunks, INPUT_PATH)
