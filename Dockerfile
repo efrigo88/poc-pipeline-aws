@@ -3,6 +3,15 @@ FROM python:3.10-slim
 # Set working directory
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    procps \
+    libpq-dev \
+    gcc \
+    python3-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # Install uv
 RUN pip install uv
 
@@ -10,7 +19,7 @@ RUN pip install uv
 COPY pyproject.toml .
 
 # Install dependencies using uv without virtual environment
-RUN uv pip install --system -e . && rm -rf ~/.cache
+RUN uv pip install --system --no-cache-dir -e . && rm -rf ~/.cache
 
 # Copy the rest of the application
 COPY . .
