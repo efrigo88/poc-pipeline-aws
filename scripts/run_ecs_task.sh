@@ -31,12 +31,6 @@ aws ecs run-task \
   --task-definition ${TASK_DEFINITION_ARN} \
   --launch-type FARGATE \
   --network-configuration "awsvpcConfiguration={subnets=[${SUBNET_ID}],securityGroups=[${SECURITY_GROUP_ID}],assignPublicIp=ENABLED}" \
-  --overrides "{\"containerOverrides\":[{\"name\":\"poc-container\",\"environment\":[
-    {\"name\":\"THREADS\",\"value\":\"${THREADS}\"},
-    {\"name\":\"DRIVER_MEMORY\",\"value\":\"${DRIVER_MEMORY}\"},
-    {\"name\":\"SHUFFLE_PARTITIONS\",\"value\":\"${SHUFFLE_PARTITIONS}\"},
-    {\"name\":\"OLLAMA_HOST\",\"value\":\"http://localhost:11434\"}
-  ]}]}" \
   --no-cli-pager > /dev/null
 
 echo "Go to AWS ECS console to monitor the task status."
