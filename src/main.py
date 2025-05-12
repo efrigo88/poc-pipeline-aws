@@ -1,4 +1,3 @@
-from datetime import datetime
 import pandas as pd
 
 from .helpers import (
@@ -22,12 +21,11 @@ def main() -> None:
     print("✅ DataFrame created")
 
     # Save DataFrame to S3
-    ingestion_dt = datetime.now().strftime("%Y-%m-%d")
-    df.to_parquet(f"{OUTPUT_PATH}/{ingestion_dt}/data.parquet")
+    df.to_parquet(f"{OUTPUT_PATH}/data.parquet")
     print("✅ Saved table to S3")
 
     # Load DataFrame from S3
-    df_loaded = pd.read_parquet(f"{OUTPUT_PATH}/{ingestion_dt}/data.parquet")
+    df_loaded = pd.read_parquet(f"{OUTPUT_PATH}/data.parquet")
     print("✅ DataFrame loaded")
     print("Number of rows in DataFrame:", df_loaded.count())
 

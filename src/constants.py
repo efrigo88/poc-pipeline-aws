@@ -1,8 +1,10 @@
 import os
+from datetime import datetime
 
+ingestion_dt = datetime.now().strftime("%Y-%m-%d")
 BUCKET_NAME = os.getenv("S3_BUCKET")
 INPUT_PATH = f"s3://{BUCKET_NAME}/data/input/Example_DCL.pdf"
-OUTPUT_PATH = f"s3://{BUCKET_NAME}/data/output/table"
+OUTPUT_PATH = f"s3://{BUCKET_NAME}/data/output/{ingestion_dt}"
 ANSWERS_PATH = f"s3://{BUCKET_NAME}/data/answers/answers.jsonl"
 
 CHUNK_SIZE = 200

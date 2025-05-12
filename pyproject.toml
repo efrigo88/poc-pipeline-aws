@@ -15,6 +15,7 @@ dependencies = [
     "sqlalchemy>=2.0.40",
     "boto3==1.38.7",
     "pandas>=2.2.3",
+    "pyarrow>=15.0.0",
 ]
 requires-python = ">=3.10"
 
