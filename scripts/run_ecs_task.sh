@@ -12,7 +12,7 @@ export AWS_SECRET_ACCESS_KEY
 export AWS_DEFAULT_REGION
 
 # Configuration
-AWS_REGION="eu-west-1"
+AWS_REGION="us-east-1"
 
 echo "🚀 Starting ECS task..."
 

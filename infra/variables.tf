@@ -2,7 +2,7 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "eu-west-1"
+  default     = "us-east-1"
 }
 
 variable "project_name" {
@@ -14,7 +14,7 @@ variable "project_name" {
 variable "environment" {
   description = "Environment name (e.g., dev, prod)"
   type        = string
-  default     = "dev"
+  default     = "sandbox"
 }
 
 variable "db_username" {
