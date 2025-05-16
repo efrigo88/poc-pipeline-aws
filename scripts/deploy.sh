@@ -9,8 +9,8 @@ source .env
 # Export AWS credentials from .env
 export AWS_ACCESS_KEY_ID
 export AWS_SECRET_ACCESS_KEY
-export AWS_DEFAULT_REGION
 export AWS_SESSION_TOKEN
+export AWS_DEFAULT_REGION
 
 echo "🔑 Initializing and applying Terraform..."
 cd infra
@@ -18,7 +18,7 @@ terraform init
 terraform apply -auto-approve
 
 # Configuration
-AWS_REGION="us-east-1"
+AWS_REGION=$AWS_DEFAULT_REGION
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 echo "Using AWS Region: ${AWS_REGION}"
 echo "Using AWS Account ID: ${AWS_ACCOUNT_ID}"

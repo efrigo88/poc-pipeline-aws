@@ -4,16 +4,16 @@
 set -e
 
 # Source environment variables
-if [ -f .env ]; then
-    echo "📝 Loading environment variables from .env file..."
-    export $(cat .env | grep -v '^#' | xargs)
-else
-    echo "❌ .env file not found!"
-    exit 1
-fi
+source .env
+
+# Export AWS credentials from .env
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+export AWS_SESSION_TOKEN
+export AWS_DEFAULT_REGION
 
 # Configuration
-AWS_REGION="us-east-1"
+AWS_REGION=$AWS_DEFAULT_REGION
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ECR_REPOSITORY="poc-pipeline"
 
