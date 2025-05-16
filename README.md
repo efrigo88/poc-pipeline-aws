@@ -94,7 +94,7 @@ The project uses:
 
 - Python for the main application
 - PostgreSQL 17.4 with pgvector extension
-- Apache Spark for data processing
+- Pandas for data processing
 - Ollama for machine learning tasks
 
 ## Important Notes

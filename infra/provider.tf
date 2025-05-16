@@ -10,12 +10,15 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  # profile = "admin" # AWS CLI profile name
 
   default_tags {
     tags = {
-      Project   = var.project_name
-      ManagedBy = "terraform"
+      Project     = var.project_name
+      Environment = var.environment
+      Owner       = "emiliano@tramcase.com"
+      Team        = "Mutt Data"
+      CostCenter  = "2025Q2-POC"
+      ManagedBy   = "terraform"
     }
   }
 }

@@ -4,11 +4,6 @@ locals {
 
 resource "aws_s3_bucket" "poc_pipeline_data" {
   bucket = local.bucket_name
-
-  tags = {
-    Name        = "poc-pipeline-data"
-    Environment = var.environment
-  }
 }
 
 # Block public access

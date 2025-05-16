@@ -2,7 +2,7 @@
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecs-task-execution-role"
+  name = "mutt-data-ecs-task-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -19,7 +19,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 }
 
 resource "aws_iam_role" "ecs_task_role" {
-  name = "ecs-task-role"
+  name = "mutt-data-ecs-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -35,13 +35,9 @@ resource "aws_iam_role" "ecs_task_role" {
   })
 }
 
-data "aws_iam_policy" "ecs_task_execution_role_policy" {
-  name = "AmazonECSTaskExecutionRolePolicy"
-}
-
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
-  policy_arn = data.aws_iam_policy.ecs_task_execution_role_policy.arn
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 resource "aws_iam_policy" "rds_access_policy" {
@@ -102,7 +98,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_role_s3_policy" {
 
 # Add CloudWatch Logs and ECS permissions
 resource "aws_iam_policy" "ecs_logs_policy" {
-  name        = "ecs-logs-policy"
+  name        = "mutt-data-ecs-logs-policy"
   description = "Policy for ECS task to access CloudWatch logs and ECS resources"
 
   policy = jsonencode({
@@ -143,7 +139,7 @@ resource "aws_iam_role_policy_attachment" "ecs_logs_policy_attachment" {
 }
 
 resource "aws_iam_policy" "ecr_access_policy" {
-  name        = "ecr-access-policy"
+  name        = "mutt-data-ecr-access-policy"
   description = "Policy for ECR access"
 
   policy = jsonencode({
